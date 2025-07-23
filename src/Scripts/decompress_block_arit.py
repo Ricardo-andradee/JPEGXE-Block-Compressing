@@ -22,10 +22,10 @@ with open(metadata_path, "rb") as f:
     metadata = pickle.load(f)
 
 frequencies = metadata["frequencies"]
-index_to_symbol = metadata["index_to_symbol"]
+symbols = metadata["symbols"]
 num_symbols = metadata["num_symbols"]
 
-# Carregar os bits como inteiros (0 ou 1 por linha)
+# Ler bits comprimidos
 with open(compressed_path, "r") as f:
     bitstream = [int(line.strip()) for line in f if line.strip() in {"0", "1"}]
 
@@ -37,14 +37,11 @@ def bit_generator(bits):
     for b in bits:
         yield b
 
-bit_iter = bit_generator(bitstream)
-decoder = ArithmeticDecoder(32, bit_iter)
+decoder = ArithmeticDecoder(32, bit_generator(bitstream))
 
 # Decodificação
-decoded_values = []
-for _ in range(num_symbols):
-    symbol_idx = decoder.read(freq_table)
-    decoded_values.append(index_to_symbol[symbol_idx])
+decoded_indices = [decoder.read(freq_table) for _ in range(num_symbols)]
+decoded_values = [symbols[i] for i in decoded_indices]
 
 # Escrever resultado
 with open(output_path, "w") as f:

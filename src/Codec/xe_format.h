@@ -204,4 +204,3 @@ void write_event_trigger(const TriggerEvent &event_trigger, timestamp_t &abs_tim
 } // namespace Encoder
 
 } // namespace XEFormat
-

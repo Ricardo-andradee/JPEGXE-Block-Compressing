@@ -23,39 +23,29 @@ metadata_path = os.path.join(OUTPUT_DIR, "bitstream_arith_metadata.pkl")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Ler entrada
-bitstream = []
 with open(input_path, "r") as f:
-    for line in f:
-        line = line.strip()
-        if line:
-            bitstream.append(int(line))
+    stream = [int(line.strip()) for line in f if line.strip()]
 
-# Mapear inteiros para índices sequenciais (necessário para codificação por símbolo)
-symbols = sorted(set(bitstream))
+# Contar frequências
+counts = Counter(stream)
+symbols = sorted(counts.keys())  # símbolos únicos ordenados
+frequencies = [counts[s] for s in symbols]
+
+# Símbolos para índices
 symbol_to_index = {s: i for i, s in enumerate(symbols)}
-index_to_symbol = {i: s for s, i in symbol_to_index.items()}
-indexed_stream = [symbol_to_index[x] for x in bitstream]
-
-# Frequência por símbolo (mínimo 1)
-num_symbols = len(symbols)
-frequencies = [1] * num_symbols  # Inicializa com 1 para evitar zero
-counts = Counter(indexed_stream)
-for idx, freq in counts.items():
-    frequencies[idx] = freq
+indexed_stream = [symbol_to_index[s] for s in stream]
 
 # Tabela de frequência
 freq_table = SimpleFrequencyTable(frequencies)
 
 # Codificar em bits
 compressed_bits = []
-bitout = compressed_bits.append
-encoder = ArithmeticEncoder(32, bitout)
-
+encoder = ArithmeticEncoder(32, compressed_bits.append)
 for symbol in indexed_stream:
     encoder.write(freq_table, symbol)
 encoder.finish()
 
-# Salvar bits como inteiros (0 ou 1 por linha)
+# Salvar bits como inteiros
 with open(compressed_path, "w") as f:
     for bit in compressed_bits:
         f.write(f"{bit}\n")
@@ -63,18 +53,17 @@ with open(compressed_path, "w") as f:
 # Salvar metadados necessários para decodificação
 with open(metadata_path, "wb") as f:
     pickle.dump({
-        "symbol_to_index": symbol_to_index,
-        "index_to_symbol": index_to_symbol,
         "frequencies": frequencies,
+        "symbols": symbols,  # necessário para reconstruir os valores reais
         "num_symbols": len(indexed_stream)
     }, f)
 
 # Estatísticas
-original_size = len(bitstream) * 8  # cada int64 = 8 bytes
+original_size = len(stream) * 8
 compressed_size_bits = len(compressed_bits)
 compressed_size_bytes = (compressed_size_bits + 7) // 8
 
-print(f"Original size: {original_size} bytes")
+print(f"\nOriginal size: {original_size} bytes")
 print(f"Compressed size: {compressed_size_bytes} bytes")
 print(f"Compression ratio: {compressed_size_bytes / original_size:.2%}")
 print(f"Compressed bits saved to: {compressed_path}")

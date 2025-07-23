@@ -23,4 +23,3 @@
 
 using timestamp_t = std::uint64_t;
 using duration_t = std::int64_t;
-
