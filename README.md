@@ -21,10 +21,10 @@ This repository presents a **lossless coding** solution for event-based vision d
 
 5. **Output Writing**  
    The processed blocks are written sequentially to an output file (`encoded_output.txt`) after sorting and differential encoding.  
-   The **block structure exists in memory during processing** but no intermediate `.bxe` file is created at this stage.
+   The **block structure exists in memory during processing**.
 
 6. **Global Compression**  
-   After preprocessing, all blocks can be concatenated and globally compressed using:
+   After preprocessing, we compressed using:
    - **Huffman coding**, or  
    - **Arithmetic coding**  
 
@@ -108,4 +108,5 @@ python3 compress_block_arit.py
 python3 decompress_block_arit.py
 
 ```
+
 
