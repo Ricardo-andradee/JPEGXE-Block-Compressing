@@ -1,19 +1,38 @@
 # Block-Based Compression of Event-Based Data Using Huffman and Arithmetic Coding
 
 ## Overview
-This repository presents a lossless coding solution for event-based vision data stored in JPEG XE’s `.xe` format. The proposed method introduces a binary transformation that restructures the `.xe` file into a block-based format (`.bxe`), where events are grouped in fixed-size blocks.
 
-The main goal is to evaluate whether this block-based organization enables more efficient statistical compression when combined with standard lossless coders.
+This repository presents a **lossless coding** solution for event-based vision data stored in JPEG XE’s `.xe` format. The proposed method introduces a **block-based transformation** that reorganizes the event stream into **fixed-size blocks**, preparing the data for efficient statistical compression.
 
-The implementation includes:
-- A C++ encoder that converts `.xe` files into `.bxe` format, segmenting the event stream into blocks with a configurable number of events (default: 1024).
-- Python modules that apply global lossless compression using:
-  - **Huffman coding**, or
-  - **Arithmetic coding**, both using concatenated block data.
+### Processing Pipeline
 
-Although the block-based structure allows for independent compression per block, initial tests showed that generating a separate Huffman table for each block led to high overhead and reduced overall efficiency. Therefore, a global compression strategy was adopted, where all block contents are merged before coding. Still, the `.bxe` format preserves block boundaries, supporting potential block-wise compression and parallelism in future implementations.
+1. **Event Reading**  
+   Encoded events from the `.xe` file are read sequentially using the dedicated JPEG XE decoder.
 
-This work is part of an academic study related to JPEG XE standardization and is intended to support further experimentation and extension.
+2. **Block Segmentation**  
+   Events are accumulated into **fixed-size blocks** (default: 1024 events per block). Each block is processed as soon as it reaches the target size.
+
+3. **In-Block Sorting**  
+   Events within the block are sorted to reduce entropy and improve subsequent compression efficiency.
+
+4. **Differential Encoding**  
+   Within each block, the first event is kept as-is, and subsequent events are replaced by the **difference from the previous event**.  
+   This transformation reduces value variability, making the data more predictable for Huffman or Arithmetic coding.
+
+5. **Intermediate Storage**  
+   The processed blocks are written to an intermediate file (`.bxe`), **preserving the block structure** to support independent block compression or parallel processing in future implementations.
+
+6. **Global Compression**  
+   After preprocessing, all blocks can be concatenated and globally compressed using:
+   - **Huffman coding**, or  
+   - **Arithmetic coding**  
+
+   Global compression avoids the overhead of generating separate tables per block while still maintaining the block structure for experimentation.
+
+### Goal
+
+The main goal of this work is to evaluate whether **block-based organization with differential encoding** enables more efficient statistical compression of event-based vision data. This implementation also provides a foundation for further experimentation and contributions to JPEG XE standardization efforts.
+
 
 ## Reference JPEG XE Repository
 In the link below is available the source code for the JPEG XE standardization activity (raw canonical XE format):
@@ -85,4 +104,5 @@ Run the Arithmetic compression/decompression:
 cd Scripts
 python3 compress_block_arit.py
 python3 decompress_block_arit.py
+
 ```
