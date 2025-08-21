@@ -19,19 +19,21 @@ This repository presents a **lossless coding** solution for event-based vision d
    Within each block, the first event is kept as-is, and subsequent events are replaced by the **difference from the previous event**.  
    This transformation reduces value variability, making the data more predictable for Huffman or Arithmetic coding.
 
-5. **Intermediate Storage**  
-   The processed blocks are written to an intermediate file (`.bxe`), **preserving the block structure** to support independent block compression or parallel processing in future implementations.
+5. **Output Writing**  
+   The processed blocks are written sequentially to an output file (`encoded_output.txt`) after sorting and differential encoding.  
+   The **block structure exists in memory during processing** but no intermediate `.bxe` file is created at this stage.
 
 6. **Global Compression**  
    After preprocessing, all blocks can be concatenated and globally compressed using:
    - **Huffman coding**, or  
    - **Arithmetic coding**  
 
-   Global compression avoids the overhead of generating separate tables per block while still maintaining the block structure for experimentation.
+   Global compression avoids the overhead of generating separate tables per block while still maintaining the conceptual block structure for experimentation.
 
 ### Goal
 
 The main goal of this work is to evaluate whether **block-based organization with differential encoding** enables more efficient statistical compression of event-based vision data. This implementation also provides a foundation for further experimentation and contributions to JPEG XE standardization efforts.
+
 
 
 ## Reference JPEG XE Repository
@@ -106,3 +108,4 @@ python3 compress_block_arit.py
 python3 decompress_block_arit.py
 
 ```
+
